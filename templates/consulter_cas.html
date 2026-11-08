@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Consulter les cas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Catalogue</span>
+    <h1>Consulter les cas cliniques</h1>
+    <p class="muted">Tous les cas publies de la plateforme.</p>
+  </div>
+</div>
+
+<form method="get" action="{{ url_for('consulter_cas') }}" class="search-form">
+  <div class="search-row">
+    <div class="form-group grow">
+      <label for="espece">Filtrer par espece</label>
+      <select id="espece" name="espece" onchange="this.form.submit()">
+        <option value="">Toutes les especes</option>
+        {% for e in especes %}
+          <option value="{{ e }}" {{ 'selected' if espece_filtre == e }}>{{ e }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Filtrer</button>
+  </div>
+</form>
+
+{% if cas_liste %}
+  <p class="results-count">{{ cas_liste|length }} cas publie(s)</p>
+  <div class="cases-grid">
+    {% for cas in cas_liste %}
+      <article class="case-tile">
+        <span class="tile-species">{{ cas.espece }}{% if cas.race %} · {{ cas.race }}{% endif %}</span>
+        <h3><a href="{{ url_for('detail_cas', id=cas.id) }}">{{ cas.titre }}</a></h3>
+        <p class="tile-motif">{{ cas.motif_consultation|truncate(110) }}</p>
+        <div class="tile-foot">
+          <span class="tile-author">{{ cas.auteur.nom_complet if cas.auteur else '' }}</span>
+          <a href="{{ url_for('detail_cas', id=cas.id) }}" class="btn btn-ghost btn-sm">Voir →</a>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <h3>Aucun cas publie</h3>
+    <p>Aucun cas ne correspond à ce filtre pour le moment.</p>
+  </div>
+{% endif %}
+{% endblock %}

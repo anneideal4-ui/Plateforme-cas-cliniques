@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Aide au diagnostic{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Aide au diagnostic</span>
+    <h1>Aide au diagnostic</h1>
+    <p class="muted">Saisissez les signes cliniques observes : le moteur retrouve les cas similaires et propose les diagnostics les plus probables.</p>
+  </div>
+</div>
+
+<form method="post" action="{{ url_for('recherche') }}" class="diag-form">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+  <div class="diag-row">
+    <div class="form-group grow">
+      <label for="termes">Signes cliniques observes</label>
+      <textarea id="termes" name="termes" rows="2" placeholder="Ex. vomissements, diarrhee hemorragique, abattement, hyperthermie...">{{ termes }}</textarea>
+    </div>
+    <div class="form-group">
+      <label for="espece">Espece (facultatif)</label>
+      <select id="espece" name="espece">
+        <option value="">Toutes</option>
+        {% for e in especes %}<option value="{{ e }}" {{ 'selected' if espece_filtre == e }}>{{ e }}</option>{% endfor %}
+      </select>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary btn-lg">Analyser</button>
+</form>
+
+{% if termes %}
+  {% if suggestions %}
+    <section class="diag-suggestions">
+      <h2>Diagnostics suggeres</h2>
+      <p class="muted">D'apres les cas les plus proches dans la base.</p>
+      <div class="suggestion-list">
+        {% for s in suggestions %}
+          <div class="suggestion-item">
+            <div class="suggestion-bar-wrap">
+              <div class="suggestion-head">
+                <span class="suggestion-diag">{{ s.diagnostic }}</span>
+                <span class="suggestion-score">{{ s.score }}%</span>
+              </div>
+              <div class="suggestion-bar"><span style="width: {{ s.score }}%"></span></div>
+              <span class="suggestion-occ">{{ s.occurrences }} cas similaire(s)</span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <p class="diag-warning">⚠️ Suggestions statistiques fournies a titre indicatif : elles ne remplacent pas le jugement clinique du praticien.</p>
+    </section>
+
+    <h2 class="results-title">Cas similaires</h2>
+    <div class="cases-grid">
+      {% for r in resultats %}
+        <article class="case-tile">
+          <span class="tile-species">{{ r.cas.espece }} · <strong>{{ r.score }}%</strong> de similarite</span>
+          <h3><a href="{{ url_for('detail_cas', id=r.cas.id) }}">{{ r.cas.titre }}</a></h3>
+          <p class="tile-motif">{{ r.cas.motif_consultation|truncate(100) }}</p>
+          <div class="tile-foot">
+            <span class="tile-author">{{ r.cas.diagnostic or 'Diagnostic non renseigne' }}</span>
+            <a href="{{ url_for('detail_cas', id=r.cas.id) }}" class="btn btn-ghost btn-sm">Voir →</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>Aucun cas similaire trouve</h3>
+      <p>Essayez d'autres termes cliniques, ou elargissez en retirant le filtre d'espece.</p>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

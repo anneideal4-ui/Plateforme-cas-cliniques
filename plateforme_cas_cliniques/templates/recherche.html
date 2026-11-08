@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Aide au diagnostic{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Aide au diagnostic</span>
+    <h1>Rechercher des cas similaires</h1>
+    <p class="muted">Decrivez les symptomes et observations ; les cas publies les plus proches s'affichent avec un score.</p>
+  </div>
+</div>
+
+<form method="post" action="{{ url_for('recherche') }}" class="search-form">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+  <div class="search-row">
+    <div class="form-group grow">
+      <label for="termes">Symptomes / observations</label>
+      <input type="text" id="termes" name="termes" value="{{ termes }}"
+             placeholder="Ex. fievre, anorexie, vomissements, abattement" autofocus>
+    </div>
+    <div class="form-group">
+      <label for="espece">Espece</label>
+      <select id="espece" name="espece">
+        <option value="">Toutes</option>
+        {% for e in especes %}
+          <option value="{{ e }}" {{ 'selected' if espece_filtre == e }}>{{ e }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Rechercher</button>
+  </div>
+</form>
+
+{% if request.method == 'POST' %}
+  {% if resultats %}
+    <p class="results-count">{{ resultats|length }} cas similaire(s) trouve(s)</p>
+    <div class="results-grid">
+      {% for r in resultats %}
+        <article class="result-card">
+          <div class="result-score">
+            <div class="score-ring" style="--score:{{ r.score }}">
+              <span>{{ r.score }}%</span>
+            </div>
+          </div>
+          <div class="result-body">
+            <h3><a href="{{ url_for('detail_cas', id=r.cas.id) }}">{{ r.cas.titre }}</a></h3>
+            <p class="result-meta">{{ r.cas.espece }}{% if r.cas.race %} · {{ r.cas.race }}{% endif %}{% if r.cas.age is not none %} · {{ r.cas.age }} an(s){% endif %}</p>
+            <p class="result-suspicion"><strong>Suspicion :</strong> {{ r.cas.suspicion|truncate(120) }}</p>
+            {% if r.cas.diagnostic %}<p class="result-diag"><strong>Diagnostic :</strong> {{ r.cas.diagnostic|truncate(120) }}</p>{% endif %}
+            <a href="{{ url_for('detail_cas', id=r.cas.id) }}" class="btn btn-ghost btn-sm">Voir le cas complet →</a>
+          </div>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <h3>Aucun cas similaire trouve</h3>
+      <p>Essayez d'autres termes ou elargissez le filtre d'espece.</p>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

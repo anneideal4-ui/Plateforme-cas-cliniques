@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}{{ cas.titre }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Cas clinique #{{ cas.id }}</span>
+    <h1>{{ cas.titre }}</h1>
+    <p class="muted">
+      <span class="chip">{{ cas.espece }}{% if cas.race %} · {{ cas.race }}{% endif %}</span>
+      <span class="status-pill status-{{ cas.statut }}">{{ cas.statut }}</span>
+      {% if cas.date_consultation %}<span class="muted"> · {{ cas.date_consultation.strftime('%d/%m/%Y') }}</span>{% endif %}
+    </p>
+  </div>
+  <div class="head-actions">
+    {% if peut_modifier %}
+      <a href="{{ url_for('modifier_cas', id=cas.id) }}" class="btn btn-ghost">Modifier</a>
+      <form action="{{ url_for('supprimer_cas', id=cas.id) }}" method="post" class="inline-form"
+            data-confirm="Supprimer definitivement ce cas ?">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-danger">Supprimer</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+{% macro ligne(label, valeur) %}
+  {% if valeur %}<div class="detail-line"><span class="detail-k">{{ label }}</span><span class="detail-v">{{ valeur }}</span></div>{% endif %}
+{% endmacro %}
+
+<div class="detail-grid">
+  <!-- 1. Identification -->
+  <section class="detail-card">
+    <h2>1 · Identification</h2>
+    {{ ligne("Animal", cas.animal_nom) }}
+    {{ ligne("Espece", cas.espece) }}
+    {{ ligne("Race", cas.race) }}
+    {{ ligne("Age", cas.age and (cas.age|string) + " an(s)") }}
+    {{ ligne("Sexe", cas.sexe) }}
+    {{ ligne("Poids", cas.poids and (cas.poids|string) + " kg") }}
+    {{ ligne("Robe", cas.robe) }}
+    {{ ligne("Proprietaire", cas.proprietaire_nom) }}
+    {{ ligne("Telephone", cas.proprietaire_telephone) }}
+    {{ ligne("Adresse", cas.proprietaire_adresse) }}
+  </section>
+
+  <!-- 2. Motif & anamnese -->
+  <section class="detail-card">
+    <h2>2 · Motif & anamnese</h2>
+    {{ ligne("Motif", cas.motif_consultation) }}
+    {{ ligne("Alimentation", cas.alimentation) }}
+    {{ ligne("Mode de vie", cas.mode_vie) }}
+    {{ ligne("Vaccination", cas.vaccination) }}{{ ligne("Detail", cas.vaccination_detail) }}
+    {{ ligne("Vermifugation", cas.vermifugation) }}{{ ligne("Detail", cas.vermifugation_detail) }}
+    {{ ligne("Contact animaux", cas.contact_animaux) }}
+    {{ ligne("Evolution des signes", cas.evolution_signes) }}
+    {{ ligne("Traitements anterieurs", cas.traitements_anterieurs) }}
+  </section>
+
+  <!-- 3. Examen a distance -->
+  <section class="detail-card">
+    <h2>3 · Examen a distance</h2>
+    {{ ligne("Conscience", cas.etat_conscience) }}
+    {{ ligne("Comportement", cas.comportement) }}
+    {{ ligne("Posture", cas.posture) }}
+    {{ ligne("Demarche", cas.demarche) }}
+    {{ ligne("NEC", cas.nec) }}
+    {{ ligne("Pelage", cas.pelage) }}
+    {{ ligne("Jetage", cas.jetage) }}
+    {{ ligne("Respiration", cas.respiration_type) }}
+    {{ ligne("Ptyalisme", cas.ptyalisme) }}
+    {{ ligne("Autres", cas.examen_distance_autres) }}
+  </section>
+
+  <!-- 4. Examen rapproche -->
+  <section class="detail-card">
+    <h2>4 · Examen rapproche</h2>
+    {{ ligne("Temperature", cas.temperature and (cas.temperature|string) + " °C") }}
+    {{ ligne("Pouls", cas.pouls) }}
+    {{ ligne("Freq. respiratoire", cas.frequence_respiratoire) }}
+    {{ ligne("Muqueuses", cas.muqueuse_couleur) }}
+    {{ ligne("Humidite", cas.muqueuse_humidite) }}
+    {{ ligne("Pli de peau", cas.pli_peau) }}
+    {{ ligne("Auscultation cardiaque", cas.auscultation_cardiaque) }}
+    {{ ligne("Auscultation pulmonaire", cas.auscultation_pulmonaire) }}
+    {{ ligne("Auscultation digestive", cas.auscultation_digestive) }}
+    {% set noeuds = cas.noeuds_lymphatiques|fromjson %}
+    {% if noeuds %}<div class="detail-line"><span class="detail-k">Noeuds lymphatiques</span>
+      <span class="detail-v"><span class="chips-inline">{% for n in noeuds %}<span class="chip-mini">{{ n }}</span>{% endfor %}</span></span></div>{% endif %}
+    {{ ligne("Autres signes", cas.examen_rapproche_autres) }}
+  </section>
+
+  <!-- 5. Suspicions -->
+  <section class="detail-card highlight">
+    <h2>5 · Suspicions cliniques</h2>
+    {{ ligne("Hypotheses", cas.hypotheses_diagnostiques) }}
+    {{ ligne("Raisonnement", cas.raisonnement_clinique) }}
+  </section>
+
+  <!-- 6. Examens complementaires -->
+  <section class="detail-card">
+    <h2>6 · Examens complementaires</h2>
+    {% set exams = cas.examens_complementaires|fromjson %}
+    {% if exams %}<div class="chips-inline">{% for e in exams %}<span class="chip-mini">{{ e }}</span>{% endfor %}</div>{% endif %}
+    {{ ligne("Notes", cas.examens_complementaires_notes) }}
+  </section>
+
+  <!-- 7-8. Diagnostic & pronostic -->
+  <section class="detail-card highlight">
+    <h2>7 · Diagnostic</h2>
+    {{ ligne("Diagnostic retenu", cas.diagnostic) }}
+    {{ ligne("Differentiel", cas.diagnostic_differentiel) }}
+    <h2 style="margin-top:1rem">8 · Pronostic</h2>
+    {{ ligne("Pronostic", cas.pronostic) }}
+    {{ ligne("Justification", cas.pronostic_justification) }}
+  </section>
+
+  <!-- 9-10. Traitement & suivi -->
+  <section class="detail-card">
+    <h2>9 · Traitements</h2>
+    {{ ligne("Plan therapeutique", cas.traitement) }}
+    <h2 style="margin-top:1rem">10 · Suivi</h2>
+    {{ ligne("Suivi", cas.suivi) }}
+    {{ ligne("Resultat", cas.resultat) }}
+  </section>
+</div>
+
+{% set photos = cas.photos|fromjson %}
+{% set videos = cas.videos|fromjson %}
+{% if photos or videos %}
+<section class="detail-card" style="margin-top:1.4rem">
+  <h2>Medias</h2>
+  {% if photos %}<div class="media-gallery">
+    {% for p in photos %}<a href="{{ url_for('static', filename=p) }}" target="_blank"><img src="{{ url_for('static', filename=p) }}" alt="photo"></a>{% endfor %}
+  </div>{% endif %}
+  {% if videos %}<div class="media-gallery">
+    {% for v in videos %}<video src="{{ url_for('static', filename=v) }}" controls></video>{% endfor %}
+  </div>{% endif %}
+</section>
+{% endif %}
+
+<p class="muted" style="margin-top:1.2rem">Auteur : {{ cas.auteur.nom_complet if cas.auteur else '—' }}</p>
+{% endblock %}

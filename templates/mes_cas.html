@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Mes cas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Mes donnees</span>
+    <h1>Mes cas cliniques</h1>
+  </div>
+  <div class="head-actions">
+    <a href="{{ url_for('export_csv') }}" class="btn btn-outline">⬇ Exporter en CSV</a>
+    <a href="{{ url_for('nouveau_cas') }}" class="btn btn-primary">+ Nouveau cas</a>
+  </div>
+</div>
+
+{% if cas_liste %}
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Espece</th>
+          <th>Statut</th>
+          <th>Date</th>
+          <th class="ta-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cas in cas_liste %}
+        <tr>
+          <td data-label="Titre"><a href="{{ url_for('detail_cas', id=cas.id) }}" class="cell-title">{{ cas.titre }}</a></td>
+          <td data-label="Espece">{{ cas.espece }}{% if cas.race %} <span class="muted">/ {{ cas.race }}</span>{% endif %}</td>
+          <td data-label="Statut"><span class="status-pill status-{{ cas.statut }}">{{ cas.statut }}</span></td>
+          <td data-label="Date">{{ cas.date_creation.strftime('%d/%m/%Y') if cas.date_creation else '' }}</td>
+          <td data-label="Actions" class="ta-right actions-cell">
+            <a href="{{ url_for('detail_cas', id=cas.id) }}" class="btn btn-ghost btn-sm">Voir</a>
+            <a href="{{ url_for('modifier_cas', id=cas.id) }}" class="btn btn-ghost btn-sm">Modifier</a>
+            <form action="{{ url_for('supprimer_cas', id=cas.id) }}" method="post" class="inline-form"
+                  data-confirm="Supprimer definitivement « {{ cas.titre }} » ?">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <div class="empty-state">
+    <h3>Aucun cas enregistre</h3>
+    <p>Commencez par documenter votre premier cas clinique.</p>
+    <a href="{{ url_for('nouveau_cas') }}" class="btn btn-primary">+ Creer un cas</a>
+  </div>
+{% endif %}
+{% endblock %}

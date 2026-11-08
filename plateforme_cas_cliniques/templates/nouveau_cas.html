@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Nouveau cas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Saisie</span>
+    <h1>Nouveau cas clinique</h1>
+  </div>
+  <a href="{{ url_for('mes_cas') }}" class="btn btn-ghost">Annuler</a>
+</div>
+
+<form method="post" action="{{ url_for('nouveau_cas') }}" enctype="multipart/form-data" class="case-form" data-validate>
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+  <fieldset class="form-section">
+    <legend>Identification</legend>
+    <div class="form-group">
+      <label for="titre">Titre du cas <span class="req">*</span></label>
+      <input type="text" id="titre" name="titre" required value="{{ form.get('titre', '') }}"
+             placeholder="Ex. Gastro-enterite canine">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="espece">Espece <span class="req">*</span></label>
+        <input type="text" id="espece" name="espece" required list="liste-especes"
+               value="{{ form.get('espece', '') }}" placeholder="Chien, Chat, Bovin…" autocomplete="off">
+        <datalist id="liste-especes">
+          {% for e in especes_disponibles %}<option value="{{ e }}">{% endfor %}
+        </datalist>
+        <small class="hint">Choisissez dans la liste ou saisissez une nouvelle espece.</small>
+      </div>
+      <div class="form-group">
+        <label for="race">Race</label>
+        <input type="text" id="race" name="race" value="{{ form.get('race', '') }}">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="age">Age (annees)</label>
+        <input type="number" id="age" name="age" min="0" max="60" value="{{ form.get('age', '') }}">
+      </div>
+      <div class="form-group">
+        <label for="sexe">Sexe</label>
+        <select id="sexe" name="sexe">
+          <option value="" {{ 'selected' if not form.get('sexe') }}>—</option>
+          <option value="M" {{ 'selected' if form.get('sexe') == 'M' }}>Male</option>
+          <option value="F" {{ 'selected' if form.get('sexe') == 'F' }}>Femelle</option>
+        </select>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Motif & anamnese</legend>
+    <div class="form-group">
+      <label for="motif_consultation">Motif de consultation <span class="req">*</span></label>
+      <textarea id="motif_consultation" name="motif_consultation" rows="2" required>{{ form.get('motif_consultation', '') }}</textarea>
+    </div>
+    <div class="form-group">
+      <label for="anamnese_commemoratif">Anamnese / commemoratifs <span class="req">*</span></label>
+      <textarea id="anamnese_commemoratif" name="anamnese_commemoratif" rows="3" required>{{ form.get('anamnese_commemoratif', '') }}</textarea>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Examen a distance</legend>
+    <div class="form-group">
+      <label for="examen_distance_texte">Observations <span class="req">*</span></label>
+      <textarea id="examen_distance_texte" name="examen_distance_texte" rows="3" required>{{ form.get('examen_distance_texte', '') }}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group file-group">
+        <label for="examen_distance_image">Image</label>
+        <input type="file" id="examen_distance_image" name="examen_distance_image" accept="image/*" data-preview>
+      </div>
+      <div class="form-group file-group">
+        <label for="examen_distance_video">Video</label>
+        <input type="file" id="examen_distance_video" name="examen_distance_video" accept="video/*">
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Examen rapproche</legend>
+    <div class="form-group">
+      <label for="examen_rapproche_texte">Observations <span class="req">*</span></label>
+      <textarea id="examen_rapproche_texte" name="examen_rapproche_texte" rows="3" required>{{ form.get('examen_rapproche_texte', '') }}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group file-group">
+        <label for="examen_rapproche_image">Image</label>
+        <input type="file" id="examen_rapproche_image" name="examen_rapproche_image" accept="image/*" data-preview>
+      </div>
+      <div class="form-group file-group">
+        <label for="examen_rapproche_video">Video</label>
+        <input type="file" id="examen_rapproche_video" name="examen_rapproche_video" accept="video/*">
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Examen special <span class="optional">(optionnel)</span></legend>
+    <div class="form-group">
+      <label for="examen_special_texte">Observations</label>
+      <textarea id="examen_special_texte" name="examen_special_texte" rows="2">{{ form.get('examen_special_texte', '') }}</textarea>
+    </div>
+    <div class="form-row">
+      <div class="form-group file-group">
+        <label for="examen_special_image">Image</label>
+        <input type="file" id="examen_special_image" name="examen_special_image" accept="image/*" data-preview>
+      </div>
+      <div class="form-group file-group">
+        <label for="examen_special_video">Video</label>
+        <input type="file" id="examen_special_video" name="examen_special_video" accept="video/*">
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Demarche diagnostique</legend>
+    <div class="form-group">
+      <label for="suspicion">Suspicion <span class="req">*</span></label>
+      <textarea id="suspicion" name="suspicion" rows="2" required>{{ form.get('suspicion', '') }}</textarea>
+    </div>
+    <div class="form-group">
+      <label for="examen_complementaire_texte">Examens complementaires <span class="optional">(optionnel)</span></label>
+      <textarea id="examen_complementaire_texte" name="examen_complementaire_texte" rows="2">{{ form.get('examen_complementaire_texte', '') }}</textarea>
+    </div>
+    <div class="form-group file-group">
+      <label for="examen_complementaire_image">Image (examen complementaire)</label>
+      <input type="file" id="examen_complementaire_image" name="examen_complementaire_image" accept="image/*" data-preview>
+    </div>
+    <div class="form-group">
+      <label for="diagnostic">Diagnostic <span class="optional">(optionnel)</span></label>
+      <textarea id="diagnostic" name="diagnostic" rows="2">{{ form.get('diagnostic', '') }}</textarea>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Traitement & suivi</legend>
+    <div class="form-group">
+      <label for="traitement_texte">Traitement <span class="req">*</span></label>
+      <textarea id="traitement_texte" name="traitement_texte" rows="3" required>{{ form.get('traitement_texte', '') }}</textarea>
+    </div>
+    <div class="form-group file-group">
+      <label for="traitement_image">Image (traitement)</label>
+      <input type="file" id="traitement_image" name="traitement_image" accept="image/*" data-preview>
+    </div>
+    <div class="form-group">
+      <label for="resultat_suivi">Resultat / suivi <span class="req">*</span></label>
+      <textarea id="resultat_suivi" name="resultat_suivi" rows="3" required>{{ form.get('resultat_suivi', '') }}</textarea>
+    </div>
+  </fieldset>
+
+  <fieldset class="form-section">
+    <legend>Publication</legend>
+    <div class="form-group">
+      <label for="statut">Statut</label>
+      <select id="statut" name="statut">
+        <option value="brouillon" {{ 'selected' if form.get('statut') != 'publie' }}>Brouillon (prive)</option>
+        <option value="publie" {{ 'selected' if form.get('statut') == 'publie' }}>Publie (visible dans l'aide au diagnostic)</option>
+      </select>
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary btn-lg">Enregistrer le cas</button>
+    <a href="{{ url_for('mes_cas') }}" class="btn btn-ghost btn-lg">Annuler</a>
+  </div>
+</form>
+{% endblock %}

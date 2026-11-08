@@ -1,0 +1,259 @@
+{# Assistant de saisie en 10 etapes. Contexte attendu :
+   f (dict de valeurs), noeuds (list), exams (list), photos/videos (list existantes),
+   action_url, submit_label #}
+{% macro opt(name, value, current) %}<option value="{{ value }}" {{ 'selected' if current == value }}>{{ value }}</option>{% endmacro %}
+{% macro nav_buttons(n) %}
+  <div class="wizard-foot">
+    <button type="button" class="btn btn-ghost btn-prev" onclick="prevStep()">← Precedent</button>
+    <span class="step-counter">Etape {{ n }} / 10</span>
+    <button type="button" class="btn btn-primary btn-next" onclick="nextStep()">Suivant →</button>
+  </div>
+{% endmacro %}
+
+{% set etapes = ['Identification','Motif & Anamnese','Examen a distance','Examen rapproche','Suspicions','Examens complementaires','Diagnostic','Pronostic','Traitements','Suivi'] %}
+
+<div class="progress-nav">
+  {% for e in etapes %}
+    <div class="step-item {{ 'active' if loop.index0 == 0 }}" onclick="goTo({{ loop.index0 }})">
+      <div class="step-dot">{{ loop.index }}</div>
+      <div class="step-label">{{ e }}</div>
+    </div>
+  {% endfor %}
+</div>
+
+<form method="post" action="{{ action_url }}" enctype="multipart/form-data" class="wizard-form" id="wizard-form">
+  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+  <!-- ETAPE 1 : IDENTIFICATION -->
+  <div class="form-section active" id="section-0">
+    <h2 class="section-title">Identification</h2>
+    <div class="form-row">
+      <div class="form-group"><label>Date <span class="req">*</span></label>
+        <input type="date" name="date_consultation" value="{{ f.get('date_consultation','') }}"></div>
+      <div class="form-group grow2"><label>Titre du cas <span class="req">*</span></label>
+        <input type="text" name="titre" required value="{{ f.get('titre','') }}" placeholder="Ex. Gastro-enterite canine"></div>
+    </div>
+    <div class="subsection-title">Proprietaire</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nom et prenoms</label>
+        <input type="text" name="proprietaire_nom" value="{{ f.get('proprietaire_nom','') }}"></div>
+      <div class="form-group"><label>Telephone</label>
+        <input type="tel" name="proprietaire_telephone" value="{{ f.get('proprietaire_telephone','') }}" placeholder="+221 ..."></div>
+    </div>
+    <div class="form-group"><label>Adresse</label>
+      <input type="text" name="proprietaire_adresse" value="{{ f.get('proprietaire_adresse','') }}"></div>
+    <div class="subsection-title">Animal</div>
+    <div class="form-row">
+      <div class="form-group"><label>Nom de l'animal</label>
+        <input type="text" name="animal_nom" value="{{ f.get('animal_nom','') }}"></div>
+      <div class="form-group"><label>Espece <span class="req">*</span></label>
+        <input type="text" name="espece" required list="liste-especes" autocomplete="off" value="{{ f.get('espece','') }}" placeholder="Chien, Chat, Bovin...">
+        <datalist id="liste-especes">{% for e in especes_disponibles %}<option value="{{ e }}">{% endfor %}</datalist></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Race</label><input type="text" name="race" value="{{ f.get('race','') }}"></div>
+      <div class="form-group"><label>Age (annees)</label><input type="number" step="0.1" min="0" name="age" value="{{ f.get('age','') }}"></div>
+      <div class="form-group"><label>Sexe</label>
+        <select name="sexe"><option value="">—</option>{{ opt('sexe','M',f.get('sexe')) }}{{ opt('sexe','F',f.get('sexe')) }}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Poids (kg)</label><input type="number" step="0.1" min="0" name="poids" value="{{ f.get('poids','') }}"></div>
+      <div class="form-group"><label>Robe / Couleur</label><input type="text" name="robe" value="{{ f.get('robe','') }}"></div>
+    </div>
+    <div class="wizard-foot"><span class="step-counter">Etape 1 / 10</span>
+      <button type="button" class="btn btn-primary btn-next" onclick="nextStep()">Suivant →</button></div>
+  </div>
+
+  <!-- ETAPE 2 : MOTIF & ANAMNESE -->
+  <div class="form-section" id="section-1">
+    <h2 class="section-title">Motif & Anamnese</h2>
+    <div class="form-group"><label>Motif de consultation <span class="req">*</span></label>
+      <textarea name="motif_consultation" required rows="3" placeholder="Motif principal de la consultation...">{{ f.get('motif_consultation','') }}</textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Alimentation</label><input type="text" name="alimentation" value="{{ f.get('alimentation','') }}"></div>
+      <div class="form-group"><label>Mode de vie</label>
+        <select name="mode_vie"><option value="">—</option>{{ opt('mode_vie','Interieur',f.get('mode_vie')) }}{{ opt('mode_vie','Exterieur',f.get('mode_vie')) }}{{ opt('mode_vie','Mixte',f.get('mode_vie')) }}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Vaccination</label>
+        <select name="vaccination"><option value="">—</option>{{ opt('vaccination','Oui - preciser',f.get('vaccination')) }}{{ opt('vaccination','Non',f.get('vaccination')) }}{{ opt('vaccination','Statut inconnu',f.get('vaccination')) }}</select>
+        <input type="text" name="vaccination_detail" value="{{ f.get('vaccination_detail','') }}" placeholder="Preciser le vaccin..." style="margin-top:8px"></div>
+      <div class="form-group"><label>Vermifugation</label>
+        <select name="vermifugation"><option value="">—</option>{{ opt('vermifugation','Oui - preciser',f.get('vermifugation')) }}{{ opt('vermifugation','Non',f.get('vermifugation')) }}{{ opt('vermifugation','Statut inconnu',f.get('vermifugation')) }}</select>
+        <input type="text" name="vermifugation_detail" value="{{ f.get('vermifugation_detail','') }}" placeholder="Date et produit..." style="margin-top:8px"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Contact avec d'autres animaux</label>
+        <select name="contact_animaux"><option value="">—</option>{{ opt('contact_animaux','Oui',f.get('contact_animaux')) }}{{ opt('contact_animaux','Non',f.get('contact_animaux')) }}</select></div>
+      <div class="form-group"><label>Evolution des signes</label>
+        <select name="evolution_signes"><option value="">—</option>{{ opt('evolution_signes','Progressive',f.get('evolution_signes')) }}{{ opt('evolution_signes','Brutale',f.get('evolution_signes')) }}{{ opt('evolution_signes','Intermittente',f.get('evolution_signes')) }}</select></div>
+    </div>
+    <div class="form-group"><label>Traitements anterieurs</label>
+      <textarea name="traitements_anterieurs" rows="2">{{ f.get('traitements_anterieurs','') }}</textarea></div>
+    {{ nav_buttons(2) }}
+  </div>
+
+  <!-- ETAPE 3 : EXAMEN A DISTANCE -->
+  <div class="form-section" id="section-2">
+    <h2 class="section-title">Examen a distance</h2>
+    <div class="form-row">
+      <div class="form-group"><label>Etat de conscience</label>
+        <select name="etat_conscience"><option value="">—</option>{% for o in ['Conscient','Somnolent','Stuporeux','Comateux'] %}{{ opt('etat_conscience',o,f.get('etat_conscience')) }}{% endfor %}</select></div>
+      <div class="form-group"><label>Comportement</label>
+        <select name="comportement"><option value="">—</option>{% for o in ['Normal','Calme','Agite / Excite','Agressif','Deprime / Abattu','Apathique','Craintif'] %}{{ opt('comportement',o,f.get('comportement')) }}{% endfor %}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Posture</label>
+        <select name="posture"><option value="">—</option>{% for o in ['Normale','Decubitus lateral','Decubitus sternal','Position antalgique','Opisthotonos','Tete basse'] %}{{ opt('posture',o,f.get('posture')) }}{% endfor %}</select></div>
+      <div class="form-group"><label>Demarche</label>
+        <select name="demarche"><option value="">—</option>{% for o in ['Normale','Boiterie anterieure gauche','Boiterie anterieure droite','Boiterie posterieure gauche','Boiterie posterieure droite','Ataxie','Paresie','Paralysie','Demarche en cercle'] %}{{ opt('demarche',o,f.get('demarche')) }}{% endfor %}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>NEC (etat corporel)</label>
+        <select name="nec"><option value="">—</option>{% for o in ['1 - Tres maigre','2 - Maigre','3 - Moyen','4 - Bon etat','5 - Obese'] %}{{ opt('nec',o,f.get('nec')) }}{% endfor %}</select></div>
+      <div class="form-group"><label>Pelage / Plumage</label>
+        <select name="pelage"><option value="">—</option>{% for o in ['Normal / Brillant','Terne / Mat','Alopecie localisee','Alopecie diffuse','Prurit','Squames','Lesions cutanees'] %}{{ opt('pelage',o,f.get('pelage')) }}{% endfor %}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Jetage</label>
+        <select name="jetage"><option value="">—</option>{% for o in ['Absent','Sereux','Muqueux','Muco-purulent','Purulent','Hemorragique'] %}{{ opt('jetage',o,f.get('jetage')) }}{% endfor %}</select></div>
+      <div class="form-group"><label>Type de respiration</label>
+        <select name="respiration_type"><option value="">—</option>{% for o in ['Normale (Costo-abdominale)','Costale','Abdominale','Dyspneique','Tachypneique','Bradypneique','Polypnee'] %}{{ opt('respiration_type',o,f.get('respiration_type')) }}{% endfor %}</select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Ptyalisme</label>
+        <select name="ptyalisme"><option value="">—</option>{{ opt('ptyalisme','Absent',f.get('ptyalisme')) }}{{ opt('ptyalisme','Present',f.get('ptyalisme')) }}</select></div>
+    </div>
+    <div class="form-group"><label>Autres observations</label>
+      <textarea name="examen_distance_autres" rows="2">{{ f.get('examen_distance_autres','') }}</textarea></div>
+    {{ nav_buttons(3) }}
+  </div>
+
+  <!-- ETAPE 4 : EXAMEN RAPPROCHE -->
+  <div class="form-section" id="section-3">
+    <h2 class="section-title">Examen rapproche</h2>
+    <div class="subsection-title">Constantes</div>
+    <div class="form-row">
+      <div class="form-group"><label>Temperature (°C)</label><input type="number" step="0.1" name="temperature" value="{{ f.get('temperature','') }}"></div>
+      <div class="form-group"><label>Pouls</label><input type="text" name="pouls" value="{{ f.get('pouls','') }}" placeholder="Ex. 90 bpm"></div>
+      <div class="form-group"><label>Frequence respiratoire</label><input type="text" name="frequence_respiratoire" value="{{ f.get('frequence_respiratoire','') }}" placeholder="Ex. 30/min"></div>
+    </div>
+    <div class="subsection-title">Muqueuses</div>
+    <div class="form-row">
+      <div class="form-group"><label>Couleur</label>
+        <select name="muqueuse_couleur"><option value="">—</option>{% for o in ['Roses','Pales','Congestionnee','Icterique','Cyanosee'] %}{{ opt('muqueuse_couleur',o,f.get('muqueuse_couleur')) }}{% endfor %}</select></div>
+      <div class="form-group"><label>Humidite</label>
+        <select name="muqueuse_humidite"><option value="">—</option>{% for o in ['Normale','Seche','Collante'] %}{{ opt('muqueuse_humidite',o,f.get('muqueuse_humidite')) }}{% endfor %}</select></div>
+      <div class="form-group"><label>Pli de peau</label>
+        <select name="pli_peau"><option value="">—</option>{% for o in ['Normal','Persistant (deshydratation)'] %}{{ opt('pli_peau',o,f.get('pli_peau')) }}{% endfor %}</select></div>
+    </div>
+    <div class="subsection-title">Noeuds lymphatiques</div>
+    <div class="chips-grid">
+      {% set noeuds_list = ['Mandibulaire G - Hypertrophie','Mandibulaire D - Hypertrophie','Prescapulaire G - Hypertrophie','Prescapulaire D - Hypertrophie','Poplite G - Hypertrophie','Poplite D - Hypertrophie','Inguinal G - Hypertrophie','Inguinal D - Hypertrophie','Adenomegalie generalisee'] %}
+      {% for n in noeuds_list %}
+      <label class="checkbox-chip {{ 'checked' if n in noeuds }}"><input type="checkbox" name="noeuds_lymphatiques" value="{{ n }}" {{ 'checked' if n in noeuds }}> {{ n }}</label>
+      {% endfor %}
+    </div>
+    <div class="subsection-title">Auscultations</div>
+    <div class="form-row">
+      <div class="form-group"><label>Cardiaque</label><input type="text" name="auscultation_cardiaque" value="{{ f.get('auscultation_cardiaque','') }}"></div>
+      <div class="form-group"><label>Pulmonaire</label><input type="text" name="auscultation_pulmonaire" value="{{ f.get('auscultation_pulmonaire','') }}"></div>
+      <div class="form-group"><label>Tube digestif</label><input type="text" name="auscultation_digestive" value="{{ f.get('auscultation_digestive','') }}"></div>
+    </div>
+    <div class="form-group"><label>Autres signes cliniques remarques</label>
+      <textarea name="examen_rapproche_autres" rows="2" placeholder="Tout autre signe observe lors de l'examen rapproche...">{{ f.get('examen_rapproche_autres','') }}</textarea></div>
+    <div class="subsection-title">Medias</div>
+    <div class="form-row">
+      <div class="form-group file-group"><label>📷 Photos - Examen rapproche</label>
+        <input type="file" name="photos" accept="image/*" multiple>
+        <small class="hint">JPG, PNG, WEBP - plusieurs fichiers acceptes.{% if photos %} {{ photos|length }} deja enregistree(s).{% endif %}</small></div>
+      <div class="form-group file-group"><label>🎥 Videos - Examen rapproche</label>
+        <input type="file" name="videos" accept="video/*" multiple>
+        <small class="hint">MP4, MOV, AVI - plusieurs fichiers acceptes.{% if videos %} {{ videos|length }} deja enregistree(s).{% endif %}</small></div>
+    </div>
+    {{ nav_buttons(4) }}
+  </div>
+
+  <!-- ETAPE 5 : SUSPICIONS -->
+  <div class="form-section" id="section-4">
+    <h2 class="section-title">Suspicions cliniques</h2>
+    <div class="form-group"><label>Hypotheses diagnostiques <span class="req">*</span></label>
+      <textarea name="hypotheses_diagnostiques" required rows="4" placeholder="Ex. 1. Parvovirose, 2. Gastro-enterite hemorragique, 3. Intoxication...">{{ f.get('hypotheses_diagnostiques','') }}</textarea></div>
+    <div class="form-group"><label>Raisonnement clinique</label>
+      <textarea name="raisonnement_clinique" rows="3" placeholder="Elements ayant oriente vers ces suspicions...">{{ f.get('raisonnement_clinique','') }}</textarea></div>
+    {{ nav_buttons(5) }}
+  </div>
+
+  <!-- ETAPE 6 : EXAMENS COMPLEMENTAIRES -->
+  <div class="form-section" id="section-5">
+    <h2 class="section-title">Examens complementaires</h2>
+    {% set groupes = {
+      'Hematologie / Biochimie': ['NFS (Numeration Formule Sanguine)','Hematocrite','Proteines totales','Glycemie','Uree sanguine (BUN)','Creatinine','ALAT / ASAT (transaminases)','Phosphatase alcaline (PAL)','Bilirubine totale','Ionogramme (Na, K, Cl)','Frottis sanguin','Temps de coagulation'],
+      'Digestif / Coproscopie': ['Coproscopie directe','Coproscopie par flottation','Coproscopie par sedimentation','Culture bacterienne des selles','Test antigenique (Parvo, Corona...)','Recherche sang occulte','Gastroscopie'],
+      'Imagerie': ['Radiographie thoracique','Radiographie abdominale','Radiographie osteo-articulaire','Echographie abdominale generale','Echographie renale et vesicale','Echocardiographie','Scanner (TDM)','IRM'],
+      'Urinaire': ['Analyse d\'urine (bandelette)','Culot urinaire (sediment)','Densite urinaire (refractometre)','Culture urinaire (ECBU)'],
+      'Microbiologie / Serologie': ['Culture bacterienne + antibiogramme','PCR virale','PCR bacterienne','Serologie (ELISA, SNT, IHA)','Test rapide antigenique','Hemoculture','Frottis colore (Gram, Giemsa...)'],
+      'Dermatologie / Parasitologie': ['Raclage cutane','Examen au scotch-test','Culture fongique (DTM)','Biopsie cutanee','Cytoponction ganglionnaire'],
+      'Autres': ['Dosage T4 (thyroide)','Dosage cortisol (ACTH)','Dosage insuline','Analyse du LCR','Test reflexes nerveux','Autopsie / necropsie','Analyse toxicologique']
+    } %}
+    {% for titre_g, items in groupes.items() %}
+      <div class="exam-group-title">{{ titre_g }}</div>
+      <div class="chips-grid">
+        {% for it in items %}
+        <label class="checkbox-chip {{ 'checked' if it in exams }}"><input type="checkbox" name="examens_complementaires" value="{{ it }}" {{ 'checked' if it in exams }}> {{ it }}</label>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <div class="form-group" style="margin-top:16px"><label>Notes / resultats</label>
+      <textarea name="examens_complementaires_notes" rows="3">{{ f.get('examens_complementaires_notes','') }}</textarea></div>
+    {{ nav_buttons(6) }}
+  </div>
+
+  <!-- ETAPE 7 : DIAGNOSTIC -->
+  <div class="form-section" id="section-6">
+    <h2 class="section-title">Diagnostic</h2>
+    <div class="form-group"><label>Diagnostic retenu</label>
+      <input type="text" name="diagnostic" value="{{ f.get('diagnostic','') }}" placeholder="Diagnostic final etabli"></div>
+    <div class="form-group"><label>Diagnostic differentiel</label>
+      <textarea name="diagnostic_differentiel" rows="3">{{ f.get('diagnostic_differentiel','') }}</textarea></div>
+    {{ nav_buttons(7) }}
+  </div>
+
+  <!-- ETAPE 8 : PRONOSTIC -->
+  <div class="form-section" id="section-7">
+    <h2 class="section-title">Pronostic</h2>
+    <div class="form-group"><label>Pronostic</label>
+      <select name="pronostic"><option value="">—</option>{% for o in ['Favorable','Reserve','Defavorable','Sombre'] %}{{ opt('pronostic',o,f.get('pronostic')) }}{% endfor %}</select></div>
+    <div class="form-group"><label>Justification du pronostic</label>
+      <textarea name="pronostic_justification" rows="3">{{ f.get('pronostic_justification','') }}</textarea></div>
+    {{ nav_buttons(8) }}
+  </div>
+
+  <!-- ETAPE 9 : TRAITEMENTS -->
+  <div class="form-section" id="section-8">
+    <h2 class="section-title">Traitements</h2>
+    <div class="form-group"><label>Plan therapeutique</label>
+      <textarea name="traitement" rows="5" placeholder="Medicaments, posologie, voie, duree...">{{ f.get('traitement','') }}</textarea></div>
+    {{ nav_buttons(9) }}
+  </div>
+
+  <!-- ETAPE 10 : SUIVI -->
+  <div class="form-section" id="section-9">
+    <h2 class="section-title">Suivi</h2>
+    <div class="form-group"><label>Suivi / evolution</label>
+      <textarea name="suivi" rows="3" placeholder="Reevaluation, prochaine visite, evolution...">{{ f.get('suivi','') }}</textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Resultat</label>
+        <select name="resultat"><option value="">—</option>{% for o in ['Guerison','Amelioration','Stationnaire','Aggravation','Deces','En cours'] %}{{ opt('resultat',o,f.get('resultat')) }}{% endfor %}</select></div>
+      <div class="form-group"><label>Statut de publication</label>
+        <select name="statut">
+          <option value="brouillon" {{ 'selected' if f.get('statut') != 'publie' }}>Brouillon (prive)</option>
+          <option value="publie" {{ 'selected' if f.get('statut') == 'publie' }}>Publie (visible dans l'aide au diagnostic)</option>
+        </select></div>
+    </div>
+    <div class="wizard-foot">
+      <button type="button" class="btn btn-ghost btn-prev" onclick="prevStep()">← Precedent</button>
+      <button type="submit" class="btn btn-primary btn-lg">{{ submit_label }}</button>
+    </div>
+  </div>
+</form>

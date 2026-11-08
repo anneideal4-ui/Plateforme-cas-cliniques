@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ cas.titre }}{% endblock %}
+{% block content %}
+
+{% macro media(image, video) %}
+  {% if image or video %}
+    <div class="media-row">
+      {% if image %}
+        <a href="{{ url_for('static', filename=image) }}" target="_blank" class="media-thumb">
+          <img src="{{ url_for('static', filename=image) }}" alt="Image d'examen" loading="lazy">
+        </a>
+      {% endif %}
+      {% if video %}
+        <video class="media-video" controls preload="metadata">
+          <source src="{{ url_for('static', filename=video) }}">
+          Votre navigateur ne peut pas lire cette video.
+        </video>
+      {% endif %}
+    </div>
+  {% endif %}
+{% endmacro %}
+
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Cas clinique</span>
+    <h1>{{ cas.titre }}</h1>
+    <p class="case-meta">
+      <span class="status-pill status-{{ cas.statut }}">{{ cas.statut }}</span>
+      {{ cas.espece }}{% if cas.race %} · {{ cas.race }}{% endif %}
+      {% if cas.age is not none %} · {{ cas.age }} an(s){% endif %}
+      {% if cas.sexe %} · {{ 'Male' if cas.sexe == 'M' else 'Femelle' }}{% endif %}
+      {% if cas.auteur %} · par {{ cas.auteur.nom_complet }}{% endif %}
+    </p>
+  </div>
+  <div class="head-actions">
+    <a href="{{ url_for('mes_cas') }}" class="btn btn-ghost">← Retour</a>
+    {% if peut_modifier %}
+      <a href="{{ url_for('modifier_cas', id=cas.id) }}" class="btn btn-outline">Modifier</a>
+      <form action="{{ url_for('supprimer_cas', id=cas.id) }}" method="post" class="inline-form"
+            data-confirm="Supprimer definitivement ce cas ?">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-danger">Supprimer</button>
+      </form>
+    {% endif %}
+  </div>
+</div>
+
+<article class="case-detail">
+  <section class="detail-block">
+    <h2>Motif de consultation</h2>
+    <p>{{ cas.motif_consultation }}</p>
+  </section>
+
+  <section class="detail-block">
+    <h2>Anamnese / commemoratifs</h2>
+    <p>{{ cas.anamnese_commemoratif }}</p>
+  </section>
+
+  <section class="detail-block">
+    <h2>Examen a distance</h2>
+    <p>{{ cas.examen_distance_texte }}</p>
+    {{ media(cas.examen_distance_image, cas.examen_distance_video) }}
+  </section>
+
+  <section class="detail-block">
+    <h2>Examen rapproche</h2>
+    <p>{{ cas.examen_rapproche_texte }}</p>
+    {{ media(cas.examen_rapproche_image, cas.examen_rapproche_video) }}
+  </section>
+
+  {% if cas.examen_special_texte or cas.examen_special_image or cas.examen_special_video %}
+  <section class="detail-block">
+    <h2>Examen special</h2>
+    {% if cas.examen_special_texte %}<p>{{ cas.examen_special_texte }}</p>{% endif %}
+    {{ media(cas.examen_special_image, cas.examen_special_video) }}
+  </section>
+  {% endif %}
+
+  <section class="detail-block highlight">
+    <h2>Suspicion</h2>
+    <p>{{ cas.suspicion }}</p>
+  </section>
+
+  {% if cas.examen_complementaire_texte or cas.examen_complementaire_image %}
+  <section class="detail-block">
+    <h2>Examens complementaires</h2>
+    {% if cas.examen_complementaire_texte %}<p>{{ cas.examen_complementaire_texte }}</p>{% endif %}
+    {{ media(cas.examen_complementaire_image, none) }}
+  </section>
+  {% endif %}
+
+  {% if cas.diagnostic %}
+  <section class="detail-block highlight">
+    <h2>Diagnostic</h2>
+    <p>{{ cas.diagnostic }}</p>
+  </section>
+  {% endif %}
+
+  <section class="detail-block">
+    <h2>Traitement</h2>
+    <p>{{ cas.traitement_texte }}</p>
+    {{ media(cas.traitement_image, none) }}
+  </section>
+
+  <section class="detail-block">
+    <h2>Resultat / suivi</h2>
+    <p>{{ cas.resultat_suivi }}</p>
+  </section>
+</article>
+{% endblock %}

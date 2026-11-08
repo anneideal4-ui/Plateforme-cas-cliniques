@@ -1,0 +1,26 @@
+# Environnement
+.env
+venv/
+.venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Base de donnees locale (si SQLite utilise en repli)
+*.db
+instance/
+
+# Uploads (on garde la structure des dossiers, pas les fichiers)
+static/uploads/img/*
+static/uploads/video/*
+!static/uploads/img/.gitkeep
+!static/uploads/video/.gitkeep
+
+# Editeurs / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

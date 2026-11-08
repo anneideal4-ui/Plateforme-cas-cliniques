@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Gestion des utilisateurs{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Administration</span>
+    <h1>Gestion des utilisateurs</h1>
+    <p class="muted">Attribuez un role a chaque membre. Le role determine les actions autorisees.</p>
+  </div>
+</div>
+
+<section class="roles-legend">
+  {% for role in roles %}
+    <div class="role-line">
+      <span class="role-badge role-{{ role }}">{{ role }}</span>
+      <span>{{ roles_description[role] }}</span>
+    </div>
+  {% endfor %}
+</section>
+
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Utilisateur</th>
+        <th>Email</th>
+        <th>Inscrit le</th>
+        <th>Role</th>
+        <th class="ta-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in utilisateurs %}
+      <tr>
+        <td data-label="Utilisateur">
+          <span class="cell-title">{{ u.nom_complet }}</span>
+          {% if u.id == current_user.id %}<span class="hint" style="display:inline">(vous)</span>{% endif %}
+        </td>
+        <td data-label="Email">{{ u.email }}</td>
+        <td data-label="Inscrit le">{{ u.date_inscription.strftime('%d/%m/%Y') if u.date_inscription else '' }}</td>
+        <td data-label="Role">
+          <form action="{{ url_for('admin_changer_role', id=u.id) }}" method="post" class="role-form">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+            <select name="role" onchange="this.form.submit()" aria-label="Role de {{ u.nom_complet }}">
+              {% for role in roles %}
+                <option value="{{ role }}" {{ 'selected' if u.role == role }}>{{ role }}</option>
+              {% endfor %}
+            </select>
+            <noscript><button type="submit" class="btn btn-ghost btn-sm">OK</button></noscript>
+          </form>
+        </td>
+        <td data-label="Actions" class="ta-right actions-cell">
+          {% if u.id != current_user.id and not (u.role == 'admin' and nb_admins <= 1) %}
+            <form action="{{ url_for('admin_supprimer_utilisateur', id=u.id) }}" method="post"
+                  class="inline-form" data-confirm="Supprimer « {{ u.nom_complet }} » et tous ses cas ?">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-danger btn-sm">Supprimer</button>
+            </form>
+          {% else %}
+            <span class="hint">—</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

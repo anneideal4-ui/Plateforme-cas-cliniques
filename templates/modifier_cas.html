@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Modifier le cas{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Fiche clinique</span>
+    <h1>Modifier le cas</h1>
+    <p class="muted">{{ cas.titre }}</p>
+  </div>
+  <a href="{{ url_for('detail_cas', id=cas.id) }}" class="btn btn-ghost">Annuler</a>
+</div>
+{% set action_url = url_for('modifier_cas', id=cas.id) %}
+{% set submit_label = '💾 Enregistrer les modifications' %}
+{% include "_wizard.html" %}
+{% endblock %}

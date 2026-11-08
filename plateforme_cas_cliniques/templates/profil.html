@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Mon profil{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Mon compte</span>
+    <h1>Mon profil</h1>
+    <p class="muted">Role : <span class="role-badge role-{{ current_user.role }}">{{ current_user.role }}</span>
+      <span class="hint" style="display:inline">— le role est attribue par un administrateur.</span></p>
+  </div>
+</div>
+
+<div class="profile-grid">
+  <section class="form-section">
+    <legend>Informations personnelles</legend>
+    <form method="post" action="{{ url_for('profil') }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="infos">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nom">Nom</label>
+          <input type="text" id="nom" name="nom" required value="{{ current_user.nom }}">
+        </div>
+        <div class="form-group">
+          <label for="prenom">Prenom</label>
+          <input type="text" id="prenom" name="prenom" required value="{{ current_user.prenom }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required value="{{ current_user.email }}">
+      </div>
+      <button type="submit" class="btn btn-primary">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="form-section">
+    <legend>Changer de mot de passe</legend>
+    <form method="post" action="{{ url_for('profil') }}" data-validate>
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="mot_de_passe">
+      <div class="form-group">
+        <label for="mdp_actuel">Mot de passe actuel</label>
+        <input type="password" id="mdp_actuel" name="mdp_actuel" required autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <label for="mdp_nouveau">Nouveau mot de passe</label>
+        <input type="password" id="mdp_nouveau" name="mdp_nouveau" required minlength="6" autocomplete="new-password">
+        <small class="hint">6 caracteres minimum.</small>
+      </div>
+      <div class="form-group">
+        <label for="mdp_confirme">Confirmer le nouveau mot de passe</label>
+        <input type="password" id="mdp_confirme" name="mdp_confirme" required minlength="6" autocomplete="new-password">
+      </div>
+      <button type="submit" class="btn btn-primary">Modifier le mot de passe</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

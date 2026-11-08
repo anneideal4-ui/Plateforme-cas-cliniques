@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Nouveau cas clinique{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Fiche clinique</span>
+    <h1>Nouveau cas clinique</h1>
+    <p class="muted">Saisie guidee en 10 etapes. Les champs marques <span class="req">*</span> sont obligatoires.</p>
+  </div>
+  <a href="{{ url_for('mes_cas') }}" class="btn btn-ghost">Annuler</a>
+</div>
+{% set action_url = url_for('nouveau_cas') %}
+{% set submit_label = '✅ Enregistrer le cas' %}
+{% include "_wizard.html" %}
+{% endblock %}

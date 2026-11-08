@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <span class="eyebrow">Tableau de bord</span>
+    <h1>Bonjour, {{ user.prenom }}.</h1>
+    <p class="muted">Role : <span class="role-badge role-{{ user.role }}">{{ user.role }}</span></p>
+  </div>
+  {% if peut_creer %}
+    <a href="{{ url_for('nouveau_cas') }}" class="btn btn-primary">+ Nouveau cas</a>
+  {% endif %}
+</div>
+
+{% if user.role == 'etudiant' %}
+  {# --- Vue etudiant : consultation --- #}
+  <section class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-num">{{ stats.cas_publies }}</span>
+      <span class="stat-label">Cas publies a consulter</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ stats.especes }}</span>
+      <span class="stat-label">Especes documentees</span>
+    </div>
+  </section>
+
+  <section class="dash-actions">
+    <a href="{{ url_for('consulter_cas') }}" class="action-tile">
+      <h3>Consulter les cas</h3>
+      <p>Parcourir l'ensemble des cas cliniques publies.</p>
+    </a>
+    <a href="{{ url_for('recherche') }}" class="action-tile">
+      <h3>Aide au diagnostic</h3>
+      <p>Rechercher des cas similaires par symptomes.</p>
+    </a>
+  </section>
+
+  <div class="empty-state" style="margin-top:1.5rem">
+    <p>En tant qu'etudiant, vous avez un acces en consultation aux cas publies.
+       Pour contribuer (ajouter vos propres cas), demandez a un administrateur
+       de vous attribuer le role medecin ou enseignant.</p>
+  </div>
+
+{% else %}
+  {# --- Vue contributeur (medecin / enseignant / admin) --- #}
+  <section class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-num">{{ stats.total }}</span>
+      <span class="stat-label">Mes cas</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ stats.publies }}</span>
+      <span class="stat-label">Publies</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ stats.brouillons }}</span>
+      <span class="stat-label">Brouillons</span>
+    </div>
+    {% if stats.total_plateforme is defined %}
+    <div class="stat-card stat-accent">
+      <span class="stat-num">{{ stats.total_plateforme }}</span>
+      <span class="stat-label">Total plateforme</span>
+    </div>
+    {% endif %}
+  </section>
+
+  <section class="dash-actions">
+    <a href="{{ url_for('mes_cas') }}" class="action-tile">
+      <h3>Mes cas cliniques</h3>
+      <p>Consulter, modifier et exporter vos cas.</p>
+    </a>
+    <a href="{{ url_for('consulter_cas') }}" class="action-tile">
+      <h3>Consulter les cas</h3>
+      <p>Parcourir tous les cas publies de la plateforme.</p>
+    </a>
+    <a href="{{ url_for('recherche') }}" class="action-tile">
+      <h3>Aide au diagnostic</h3>
+      <p>Rechercher des cas similaires par symptomes.</p>
+    </a>
+    <a href="{{ url_for('export_csv') }}" class="action-tile">
+      <h3>Exporter en CSV</h3>
+      <p>Telecharger vos donnees pour vos analyses.</p>
+    </a>
+    {% if user.role == 'admin' %}
+    <a href="{{ url_for('admin_utilisateurs') }}" class="action-tile">
+      <h3>Gerer les utilisateurs</h3>
+      <p>Attribuer les roles et les permissions.</p>
+    </a>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Cas recents</h2>
+      <a href="{{ url_for('mes_cas') }}" class="link">Tout voir</a>
+    </div>
+    {% if recents %}
+      <ul class="recent-list">
+        {% for cas in recents %}
+          <li>
+            <a href="{{ url_for('detail_cas', id=cas.id) }}">
+              <span class="recent-title">{{ cas.titre }}</span>
+              <span class="recent-meta">{{ cas.espece }} - {{ cas.date_creation.strftime('%d/%m/%Y') if cas.date_creation else '' }}</span>
+            </a>
+            <span class="status-pill status-{{ cas.statut }}">{{ cas.statut }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty">Aucun cas pour le moment. <a href="{{ url_for('nouveau_cas') }}">Creez votre premier cas</a>.</p>
+    {% endif %}
+  </section>
+{% endif %}
+{% endblock %}

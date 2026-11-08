@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Accueil{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">EISMV · Dakar</span>
+      <h1>La demarche clinique veterinaire,<em> documentee et partagee.</em></h1>
+      <p class="lead">
+        Saisissez vos cas selon une structure rigoureuse — du motif de consultation
+        au suivi — illustrez-les d'images et de videos, et retrouvez des cas
+        similaires pour orienter vos diagnostics.
+      </p>
+      <div class="hero-actions">
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg">Acceder a mon espace</a>
+          <a href="{{ url_for('nouveau_cas') }}" class="btn btn-outline btn-lg">Nouveau cas</a>
+        {% else %}
+          <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Creer un compte</a>
+          <a href="{{ url_for('login') }}" class="btn btn-outline btn-lg">Se connecter</a>
+        {% endif %}
+      </div>
+      <div class="hero-stats">
+        <div><strong>{{ stats.cas }}</strong><span>cas publies</span></div>
+        <div><strong>{{ stats.especes }}</strong><span>especes</span></div>
+        <div><strong>{{ stats.contributeurs }}</strong><span>contributeurs</span></div>
+      </div>
+    </div>
+    <div class="hero-card" aria-hidden="true">
+      <div class="hero-card-head">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <div class="hero-case">
+        <span class="tag">Chien · Berger Allemand</span>
+        <h4>Boiterie membre anterieur droit</h4>
+        <p><strong>Suspicion :</strong> entorse ou fracture du carpe</p>
+        <div class="hero-score"><span style="--w:95%"></span>95% de similarite</div>
+        <div class="hero-score"><span style="--w:78%"></span>78% de similarite</div>
+        <div class="hero-score"><span style="--w:62%"></span>62% de similarite</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features">
+  <article class="feature-card">
+    <div class="feature-icon">①</div>
+    <h3>Saisie structuree</h3>
+    <p>Une fiche qui suit la demarche clinique reelle : anamnese, examens a distance, rapproche et speciaux, suspicion, diagnostic, traitement et suivi.</p>
+  </article>
+  <article class="feature-card">
+    <div class="feature-icon">②</div>
+    <h3>Aide au diagnostic</h3>
+    <p>Un moteur de similarite confronte vos observations aux cas publies et affiche les plus proches avec un score, pour eclairer la decision.</p>
+  </article>
+  <article class="feature-card">
+    <div class="feature-icon">③</div>
+    <h3>Valorisation en recherche</h3>
+    <p>Exportez l'ensemble des cas au format CSV pour vos analyses statistiques et vos travaux de these.</p>
+  </article>
+</section>
+{% endblock %}
